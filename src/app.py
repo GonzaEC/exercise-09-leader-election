@@ -48,16 +48,19 @@ def health(db: Session = Depends(get_db)):
 
 
 @app.get("/api/node-id")
+@app.get("/node-id")
 def get_node_id():
     return {"node_id": election.NODE_ID}
 
 
 @app.get("/api/leader", response_model=LeaderResponse)
+@app.get("/leader", response_model=LeaderResponse)
 def get_leader():
     return {"leader_id": election.current_leader, "node_id": election.NODE_ID}
 
 
 @app.post("/api/election")
+@app.post("/election")
 def receive_election(msg: ElectionMessage):
     if msg.node_id >= election.NODE_ID:
         raise HTTPException(status_code=400, detail="Sender has equal or higher ID")
@@ -66,12 +69,14 @@ def receive_election(msg: ElectionMessage):
 
 
 @app.post("/api/coordinator")
+@app.post("/coordinator")
 def receive_coordinator(msg: CoordinatorMessage):
     election.set_leader(msg.node_id)
     return {"status": "ok", "leader_id": msg.node_id}
 
 
 @app.post("/api/election/start")
+@app.post("/election/start")
 def trigger_election():
     threading.Thread(target=election.start_election, daemon=True).start()
     return {"status": "election started", "node_id": election.NODE_ID}
