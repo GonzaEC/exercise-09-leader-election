@@ -20,3 +20,16 @@ class NodeResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     model_config = {"from_attributes": True}
+
+
+class ElectionMessage(BaseModel):
+    node_id: int
+
+
+class CoordinatorMessage(BaseModel):
+    node_id: int
+
+
+class LeaderResponse(BaseModel):
+    leader_id: Optional[int]
+    node_id: int
