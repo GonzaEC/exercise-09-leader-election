@@ -6,6 +6,7 @@ from typing import Optional
 
 NODE_ID: int = int(os.environ.get("NODE_ID", "1"))
 ELECTION_TIMEOUT: float = float(os.environ.get("ELECTION_TIMEOUT", "3"))
+STARTUP_DELAY: float = float(os.environ.get("STARTUP_DELAY", "3"))
 
 
 def _parse_peers() -> dict[int, str]:
@@ -87,8 +88,13 @@ def set_leader(leader_id: int) -> None:
     global current_leader, _election_in_progress
 
     with _lock:
-        current_leader = leader_id
+        if current_leader is None or leader_id >= current_leader:
+            current_leader = leader_id
         _election_in_progress = False
+
+    # Bully: if coordinator came from a lower-ID node, assert dominance
+    if leader_id < NODE_ID:
+        threading.Thread(target=start_election, daemon=True).start()
 
 
 def heartbeat_check() -> None:

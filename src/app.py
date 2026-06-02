@@ -1,4 +1,5 @@
 import threading
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -19,11 +20,16 @@ from src.schemas import (
 import src.election as election
 
 
+def _delayed_start_election():
+    time.sleep(election.STARTUP_DELAY)
+    election.start_election()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     threading.Thread(target=election.heartbeat_check, daemon=True).start()
-    threading.Thread(target=election.start_election, daemon=True).start()
+    threading.Thread(target=_delayed_start_election, daemon=True).start()
     yield
 
 
